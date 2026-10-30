@@ -1,0 +1,55 @@
+{
+  "bought": {},
+  "starred": {},
+  "flagged": {},
+  "gifts": [
+    {
+      "id": "espresso-spray-bottle",
+      "name": "Espresso Spray Bottle",
+      "category": "Coffee",
+      "price": 5,
+      "emoji": "☕",
+      "link": "https://www.amazon.com/dp/B091SZF8FG",
+      "desc": "Fine-mist spray bottle for the espresso setup.",
+      "set": "Espresso Gear",
+      "starred": false,
+      "_remote": true
+    },
+    {
+      "id": "espresso-tamper",
+      "name": "Espresso Tamper (58 mm)",
+      "category": "Coffee",
+      "price": 15,
+      "emoji": "☕",
+      "link": "https://www.amazon.com/dp/B0DQCQL2TC",
+      "desc": "Stainless steel 58 mm tamper for portafilters.",
+      "set": "Espresso Gear",
+      "starred": false,
+      "_remote": true
+    },
+    {
+      "id": "espresso-tools",
+      "name": "Espresso Tools (WDT / Distributor)",
+      "category": "Coffee",
+      "price": 34,
+      "emoji": "☕",
+      "link": "https://www.amazon.com/dp/B0F8WLXT5Y",
+      "desc": "Espresso accessory set with WDT tool and distributor for portafilters.",
+      "set": "Espresso Gear",
+      "starred": false,
+      "_remote": true
+    },
+    {
+      "id": "levoit-air-purifier",
+      "name": "Levoit Air Purifier (Core 300-P)",
+      "category": "Home",
+      "price": 89,
+      "emoji": "🌬️",
+      "link": "https://www.amazon.com/dp/B07VVK39F7",
+      "desc": "Levoit Core 300-P HEPA air purifier for allergens.",
+      "set": "",
+      "starred": false,
+      "_remote": true
+    }
+  ]
+}
