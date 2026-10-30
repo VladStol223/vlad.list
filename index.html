@@ -517,6 +517,30 @@
     .json-copy-btn:hover { background: rgba(205,214,244,.22); }
     .json-copy-btn.copied { color: #a6e3a1; border-color: #a6e3a1; }
 
+    /* emoji picker */
+    .emoji-picker { position: relative; }
+    .emoji-input { cursor: pointer; }
+    .emoji-panel {
+      display: none; position: absolute; top: calc(100% + 6px); right: 0; z-index: 20;
+      width: 300px; max-width: 80vw; padding: 10px;
+      background: var(--surface-2); border: 1.5px solid var(--border);
+      border-radius: var(--radius-md); box-shadow: var(--shadow-lg);
+    }
+    .emoji-panel.open { display: block; }
+    .emoji-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; max-height: 190px; overflow-y: auto; margin: 8px 0; }
+    .emoji-grid button {
+      background: none; border: none; border-radius: 8px; cursor: pointer;
+      font-size: 1.35rem; line-height: 1; padding: 6px 0;
+      transition: background var(--transition);
+    }
+    .emoji-grid button:hover, .emoji-grid button:focus { background: var(--pink-100); outline: none; }
+    .emoji-empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: .82rem; padding: 14px 0; }
+    .emoji-clear {
+      background: none; border: none; cursor: pointer; font-family: 'Inter', sans-serif;
+      font-size: .76rem; color: var(--text-muted);
+    }
+    .emoji-clear:hover { color: var(--pink-500); }
+
     /* tabs */
     .tab-row { display: flex; gap: 4px; background: var(--pink-50); border-radius: var(--radius-sm); padding: 4px; }
     .tab-btn {
@@ -677,7 +701,14 @@
           </div>
           <div class="form-group">
             <label class="form-label">Emoji / icon</label>
-            <input class="form-input" id="f-emoji" placeholder="🎁" maxlength="4" />
+            <div class="emoji-picker" id="emoji-picker">
+              <input class="form-input emoji-input" id="f-emoji" placeholder="🎁 Pick an emoji" readonly autocomplete="off" />
+              <div class="emoji-panel" id="emoji-panel">
+                <input class="form-input emoji-search" id="emoji-search" placeholder="Search emojis… (cake, coffee, book)" autocomplete="off" />
+                <div class="emoji-grid" id="emoji-grid"></div>
+                <button type="button" class="emoji-clear" id="emoji-clear">Clear</button>
+              </div>
+            </div>
           </div>
         </div>
         <div class="form-group">
@@ -1236,6 +1267,54 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
   });
 });
+
+/* ── Emoji picker ─────────────────────────────────────────────────── */
+const EMOJIS = [
+  ['🎁','gift present box'],['🎀','ribbon bow'],['🎄','christmas tree holiday'],['🎅','santa claus christmas'],['⭐','star'],['✨','sparkles shiny'],['🎉','party popper celebrate'],['🎂','birthday cake'],
+  ['☕','coffee espresso cup hot drink'],['🫖','teapot tea'],['🍵','tea matcha'],['🧋','boba bubble tea'],['🥤','drink cup soda'],['🍷','wine glass'],['🍺','beer'],['🥃','whiskey tumbler'],['🍸','cocktail martini'],['🍫','chocolate candy'],['🍪','cookie'],['🍰','cake dessert'],['🍕','pizza'],['🍔','burger'],['🌮','taco'],['🍣','sushi'],['🍜','ramen noodles'],['🥑','avocado'],['🍎','apple fruit'],['🍓','strawberry'],
+  ['🌬️','air wind purifier fan'],['🏠','home house'],['🛋️','couch sofa furniture'],['🛏️','bed'],['🕯️','candle'],['💡','light bulb lamp'],['🪴','plant pot houseplant'],['🧴','lotion bottle spray'],['🧼','soap'],['🧺','laundry basket'],['🧹','broom clean'],['🪞','mirror'],['🔑','key'],['🛁','bath tub'],['🧸','teddy bear plush'],['🪑','chair'],
+  ['👕','tshirt shirt clothing'],['👖','jeans pants'],['🧥','coat jacket'],['🧣','scarf'],['🧤','gloves'],['🧦','socks'],['👟','sneakers shoes'],['👞','shoe dress'],['🥾','boots hiking'],['🎩','hat top'],['🧢','cap hat'],['🕶️','sunglasses'],['👓','glasses'],['⌚','watch'],['👜','bag purse'],['🎒','backpack'],['💍','ring jewelry'],['📿','necklace beads'],['💎','gem diamond'],
+  ['📚','books reading'],['📖','book open'],['📓','notebook journal'],['✏️','pencil'],['🖊️','pen'],['🎨','art paint palette'],['🖌️','paintbrush'],['🎭','theater masks'],['🎬','movie film clapper'],['🎞️','film'],['📷','camera photo'],['📸','camera flash'],['🎥','video camera'],['🎙️','microphone'],['🎧','headphones music'],['🎵','music note'],['🎸','guitar'],['🎹','piano keyboard'],['🥁','drum'],['🎤','karaoke mic'],
+  ['🎮','video game controller'],['🕹️','joystick arcade'],['🎲','dice board game'],['🧩','puzzle'],['♟️','chess'],['🃏','cards joker'],['🧱','lego bricks'],['🎯','darts target'],['🎳','bowling'],['🪁','kite'],
+  ['💻','laptop computer'],['🖥️','desktop monitor'],['⌨️','keyboard'],['🖱️','mouse'],['📱','phone mobile'],['🔌','plug charger'],['🔋','battery'],['📺','tv television'],['🔊','speaker'],['📡','antenna'],['🕰️','clock'],['🔦','flashlight'],['🔧','wrench tool'],['🔨','hammer'],['🪛','screwdriver'],['🧰','toolbox'],['⚙️','gear settings'],['🪚','saw'],
+  ['⚽','soccer football'],['🏀','basketball'],['🏈','american football'],['⚾','baseball'],['🎾','tennis'],['🏐','volleyball'],['🏓','ping pong'],['🥊','boxing glove'],['🏋️','weights gym'],['🚴','bike cycling'],['🏃','running'],['🧘','yoga'],['⛷️','ski'],['🏂','snowboard'],['🏊','swim'],['🏕️','camping tent'],['🎣','fishing'],['⛳','golf'],
+  ['✈️','plane travel flight'],['🧳','luggage suitcase'],['🗺️','map'],['🚗','car'],['🚲','bicycle'],['🏖️','beach'],['🏔️','mountain'],['🌲','tree pine'],['🌸','blossom flower'],['🌹','rose'],['🌻','sunflower'],['🌙','moon'],['☀️','sun'],['❄️','snowflake winter'],['🔥','fire'],['💧','water drop'],
+  ['🐶','dog'],['🐱','cat'],['🐻','bear'],['🦊','fox'],['🐼','panda'],['🦉','owl'],['🦋','butterfly'],['🐢','turtle'],
+  ['💄','lipstick makeup'],['💅','nail polish'],['🧖','spa'],['🪒','razor shave'],['🧔','beard'],['💈','barber'],['🪥','toothbrush'],['🌡️','thermometer'],['💊','pill medicine'],['🩺','stethoscope'],
+  ['💰','money cash'],['💳','credit card gift card'],['🎟️','ticket'],['🧾','receipt'],['🏆','trophy'],['🥇','medal gold'],['❤️','heart love'],['💙','blue heart'],['🖤','black heart'],['👑','crown'],['🦸','superhero'],['🦇','bat batman'],['🚀','rocket space'],['🔭','telescope'],['🔬','microscope science'],['🧪','test tube'],['🪐','planet saturn'],
+];
+
+(function initEmojiPicker() {
+  const input  = document.getElementById('f-emoji');
+  const panel  = document.getElementById('emoji-panel');
+  const search = document.getElementById('emoji-search');
+  const grid   = document.getElementById('emoji-grid');
+
+  function render() {
+    const q = search.value.trim().toLowerCase();
+    const list = q ? EMOJIS.filter(([, k]) => k.includes(q)) : EMOJIS;
+    grid.innerHTML = list.length
+      ? list.map(([e, k]) => `<button type="button" data-emoji="${e}" title="${k.split(' ')[0]}">${e}</button>`).join('')
+      : '<div class="emoji-empty">No emojis found</div>';
+  }
+  function open()  { panel.classList.add('open'); search.value = ''; render(); setTimeout(() => search.focus(), 0); }
+  function close() { panel.classList.remove('open'); }
+
+  input.addEventListener('click', () => panel.classList.contains('open') ? close() : open());
+  search.addEventListener('input', render);
+  search.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.stopPropagation(); close(); }
+    if (e.key === 'Enter')  { e.preventDefault(); const first = grid.querySelector('button'); if (first) first.click(); }
+  });
+  grid.addEventListener('click', e => {
+    const b = e.target.closest('button[data-emoji]');
+    if (!b) return;
+    input.value = b.dataset.emoji;
+    close();
+  });
+  document.getElementById('emoji-clear').addEventListener('click', () => { input.value = ''; close(); });
+  document.addEventListener('click', e => { if (!e.target.closest('#emoji-picker')) close(); });
+})();
 
 function populateDataLists() {
   const cats = categories().filter(c => c !== 'All');
